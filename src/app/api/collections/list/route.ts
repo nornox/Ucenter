@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client'
 // 修改 CollectionListProps 类型定义
 type CollectionListProps = {
   cmd: 'all' | 'untagged' | 'web' | 'recent' | 'favorite' | 'album' | `search_${string}`;
-  sort?: String;
+  sort?: string;
   page?: number;
   search?: string;
   albumId?: string; // 新增 albumId 参数
@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
     let decoded;
     try {
       decoded = await verifyToken(token)
-    } catch (error: any) {
-      if (error.name === 'TokenExpiredError') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'TokenExpiredError') {
         console.log('令牌已过期')
         return NextResponse.json({ error: '令牌已过期' }, { status: 401 })
       }
@@ -60,7 +60,8 @@ export async function POST(request: NextRequest) {
     console.log(`用户ID: ${decoded.userId}`)
 
     // 构建基础查询条件
-    let where: any = {
+    // 替换 any 类型
+    let where: Prisma.FavItemWhereInput = {
       userId: decoded.userId,
       isDeleted: false,
     }
@@ -94,12 +95,13 @@ export async function POST(request: NextRequest) {
         console.log('查询所有收藏')
         // 使用 Prisma 查询
         total = await prisma.favItem.count({ where })
-        collections = await prisma.favItem.findMany({
+        const items = await prisma.favItem.findMany({
           where,
           orderBy,
           skip: (page - 1) * pageSize,
           take: pageSize,
         })
+        collections = items.map(item => ({ ...item, count: 0 }))
         break
       case 'untagged':
         console.log('查询未标记的收藏')
@@ -137,7 +139,7 @@ export async function POST(request: NextRequest) {
         total = await prisma.favItem.count({ where })
         
         // 查询网页收藏项目
-        collections = await prisma.favItem.findMany({
+        const items2 = await prisma.favItem.findMany({
           where,
           orderBy,
           skip: (page - 1) * pageSize,
@@ -145,7 +147,7 @@ export async function POST(request: NextRequest) {
         })
 
         // 获取这些项目的 ID
-        const itemIds = collections.map(item => item.id)
+        const itemIds = items2.map(item => item.id)
 
         // 单独查询每个项目的标签数量
         const tagCounts = await prisma.favItemTag.groupBy({
@@ -164,9 +166,14 @@ export async function POST(request: NextRequest) {
         const tagCountMap = new Map(tagCounts.map(tc => [tc.itemId, tc._count.itemId]))
 
         // 合并结果
-        collections = collections.map(item => ({
+        collections = items2.map(item => ({
           ...item,
           count: tagCountMap.get(item.id) || 0
+        }))
+
+        collections = items2.map(item => ({
+          ...item,
+          count: 0
         }))
         break
       case 'album':
@@ -180,12 +187,17 @@ export async function POST(request: NextRequest) {
           parentId: parseInt(albumId)
         }
         total = await prisma.favItem.count({ where })
-        collections = await prisma.favItem.findMany({
+        const items3 = await prisma.favItem.findMany({
           where,
           orderBy,
           skip: (page - 1) * pageSize,
           take: pageSize,
         })
+        
+        collections = items3.map(item => ({
+          ...item,
+          count: 0
+        }))
         break
       // 其他 case 需要实现
     }

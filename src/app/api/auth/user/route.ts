@@ -7,7 +7,7 @@ export async function OPTIONS() {
   return handleCorsPreflightRequest()
 }
 
-export async function GET(request: NextRequest, { params: _ }: { params: Record<string, string | string[]> }) {
+export async function GET(request: NextRequest) {
   const corsHeaders = await corsMiddleware(request)
   
   try {
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, { params: _ }: { params: Record<
       return NextResponse.json({ error: 'User not found' }, { status: 404, headers: corsHeaders })
     }
 
-    const { password: _, ...userWithoutPassword } = user
+    const { password: userWithoutPassword } = user
     return NextResponse.json(userWithoutPassword, { status: 200, headers: corsHeaders })
   } catch (error) {
     console.error('Get user error:', error)
@@ -49,7 +49,7 @@ export async function PUT(request: Request) {
     const body = await request.json()
 
     const updatedUser = await updateUser(decoded.userId, body)
-    const { password: _, ...userWithoutPassword } = updatedUser
+    const { password: userWithoutPassword } = updatedUser
 
     return NextResponse.json(userWithoutPassword, { status: 200, headers: corsHeaders })
   } catch (error) {
@@ -77,7 +77,7 @@ export async function DELETE(request: Request) {
   }
 }
 
-export async function POST(request: NextRequest, { params: _ }: { params: Record<string, string | string[]> }) {
+export async function POST(request: NextRequest) {
   const corsHeaders = await corsMiddleware(request)
   
   try {

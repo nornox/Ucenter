@@ -209,7 +209,7 @@ function getRandomArticle() {
   return articleData[Math.floor(Math.random() * articleData.length)]
 }
 
-export async function GET(_request: Request) {
+export async function GET() {
   try {
     // // 生成2个测试用户
     // const users = await Promise.all(
