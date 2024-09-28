@@ -1,0 +1,103 @@
+// Prisma schema 文件
+// 更多信息请参考: https://pris.ly/d/prisma-schema
+
+// 定义 Prisma 客户端生成器
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 定义数据源
+datasource db {
+  provider = "postgresql" // 使用 PostgreSQL 数据库，可根据实际情况修改
+  url      = env("DATABASE_URL") // 数据库连接 URL，从环境变量中读取
+}
+
+// 用户模型
+model User {
+  id         Int      @id @default(autoincrement()) // 自增主键
+  username   String   
+  name       String // 用户真实姓名
+  email      String   @unique // 唯一邮箱地址
+  password   String // 加密后的密码
+  phone      String?  
+  wechatId   String?  
+  createdAt  DateTime @default(now()) // 创建时间，默认为当前时间
+  updatedAt  DateTime @updatedAt // 更新时间，自动更新
+
+  @@map("kstudio_users") // 映射到数据库中的表名
+}
+
+// 刷新令牌模型
+model RefreshToken {
+  id        String   @id @default(uuid()) // UUID 主键
+  token     String   @unique // 唯一令牌
+  userId    Int // 关联的用户 ID
+  expiresAt DateTime // 过期时间
+  createdAt DateTime @default(now()) // 创建时间
+
+  @@map("kstudio_refresh_tokens") // 映射到数据库中的表名
+}
+
+// 密码重置模型
+model PasswordReset {
+  id        String   @id @default(uuid()) // UUID 主键
+  email     String // 用户邮箱
+  token     String   @unique // 唯一重置令牌
+  expiresAt DateTime // 过期时间
+  createdAt DateTime @default(now()) // 创建时间
+
+  @@map("kstudio_password_resets") // 映射到数据库中的表名
+}
+
+// 失效令牌模型
+model InvalidToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  userId    Int
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
+// 收藏夹项目模型-收藏夹
+model FavItem {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  parentId      Int?
+  type          String    // 'collection', 'image', 'text', 'url', 'mixed'
+  title         String
+  content       String?
+  url           String?
+  coverImage    String?
+  source        String?
+  contentHash   String?
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
+  isPublic      Boolean   @default(false)
+  shareToken    String?   @unique
+  sharePassword String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("kstudio_fav_items")
+}
+
+// 收藏夹标签模型-标签
+model FavTag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("kstudio_fav_tags")
+}
+
+// 收藏夹项目标签模型-收藏夹项目标签关系表
+model FavItemTag {
+  id     Int @id @default(autoincrement())
+  itemId Int
+  tagId  Int
+
+  @@map("kstudio_fav_item_tags")
+}
+
