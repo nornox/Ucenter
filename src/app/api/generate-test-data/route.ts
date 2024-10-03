@@ -301,20 +301,20 @@ export async function GET() {
       favItems.push(favItem)
 
       // 为每个收藏项创建标签并建立关联
-      let tag = await prisma.favTag.findUnique({
-        where: { name: topic },
-      })
-      if (!tag) {
-        tag = await prisma.favTag.create({
-          data: { name: topic },
-        })
-      }
-      await prisma.favItemTag.create({
-        data: {
-          itemId: favItem.id,
-          tagId: tag.id,
-        },
-      })
+      // let tag = await prisma.favTag.findUnique({
+      //   where: { name: topic },
+      // })
+      // if (!tag) {
+      //   tag = await prisma.favTag.create({
+      //     data: { name: topic },
+      //   })
+      // }
+      // await prisma.favItemTag.create({
+      //   data: {
+      //     itemId: favItem.id,
+      //     tagId: tag.id,
+      //   },
+      // })
     }
     return NextResponse.json(
       {
