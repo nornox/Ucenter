@@ -20,8 +20,11 @@ export async function GET(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
+    
+    const userWithoutPassword = Object.fromEntries(
+      Object.entries(user).filter(([key]) => key !== 'password')
+    );
 
-    const { password: _, ...userWithoutPassword } = user
     return NextResponse.json(userWithoutPassword, { status: 200 })
   } catch (error) {
     console.error('Get user error:', error)
@@ -40,7 +43,9 @@ export async function PUT(request: Request) {
     const body = await request.json()
 
     const updatedUser = await updateUser(decoded.userId, body)
-    const { password: _, ...userWithoutPassword } = updatedUser;
+    const userWithoutPassword = Object.fromEntries(
+      Object.entries(updatedUser).filter(([key]) => key !== 'password')
+    );
 
     return NextResponse.json(userWithoutPassword, { status: 200 })
   } catch (error) {
