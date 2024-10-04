@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { NextResponse } from 'next/server'
-// import bcrypt from 'bcryptjs'
+import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
@@ -211,28 +211,28 @@ function getRandomArticle() {
 
 export async function GET() {
   try {
-    // // 生成2个测试用户
-    // const users = await Promise.all(
-    //   [1, 2].map(async (i) => {
-    //     const hashedPassword = await bcrypt.hash('testpassword', 10)
-    //     return prisma.favUser.create({
-    //       data: {
-    //         username: `testuser${Math.floor(Math.random() * 1000)}`,
-    //         name: `测试用户${i}`,
-    //         email: `test${Math.floor(Math.random() * 1000)}@example.com}`,
-    //         password: hashedPassword,
-    //       },
-    //     })
-    //   }),
-    // )
+    // 生成2个测试用户
+    const users = await Promise.all(
+      [1, 2].map(async (i) => {
+        const hashedPassword = await bcrypt.hash('testpassword', 10)
+        return prisma.user.create({
+          data: {
+            username: `testuser${Math.floor(Math.random() * 1000)}`,
+            name: `测试用户${i}`,
+            email: `test${Math.floor(Math.random() * 1000)}@example.com}`,
+            password: hashedPassword,
+          },
+        })
+      }),
+    )
 
     // 从数据库中读取2条用户信息
-    const users = await prisma.user.findMany({
-      take: 2,
-      orderBy: {
-        id: 'asc'
-      }
-    });
+    // const users = await prisma.user.findMany({
+    //   take: 2,
+    //   orderBy: {
+    //     id: 'asc'
+    //   }
+    // });
 
     // 生成100个收藏项
     const favItems = []
@@ -300,21 +300,21 @@ export async function GET() {
       })
       favItems.push(favItem)
 
-      // 为每个收藏项创建标签并建立关联
-      // let tag = await prisma.favTag.findUnique({
-      //   where: { name: topic },
-      // })
-      // if (!tag) {
-      //   tag = await prisma.favTag.create({
-      //     data: { name: topic },
-      //   })
-      // }
-      // await prisma.favItemTag.create({
-      //   data: {
-      //     itemId: favItem.id,
-      //     tagId: tag.id,
-      //   },
-      // })
+      //为每个收藏项创建标签并建立关联
+      let tag = await prisma.favTag.findUnique({
+        where: { name: topic },
+      })
+      if (!tag) {
+        tag = await prisma.favTag.create({
+          data: { name: topic },
+        })
+      }
+      await prisma.favItemTag.create({
+        data: {
+          itemId: favItem.id,
+          tagId: tag.id,
+        },
+      })
     }
     return NextResponse.json(
       {
