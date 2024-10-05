@@ -78,10 +78,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '未提供令牌' }, { status: 401 })
     }
 
-    await verifyToken(token)
-    
-    // 使令牌失效
-    await invalidateToken(token)
+    const decoded = await verifyToken(token)
+    console.log('decoded', decoded)
 
     return NextResponse.json({ message: '用户已成功登出' }, { status: 200 })
   } catch (error) {

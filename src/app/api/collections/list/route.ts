@@ -248,3 +248,48 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '获取收藏夹列表失败' }, { status: 500 })
   }
 }
+
+
+export async function GET(request: NextRequest) {
+  console.log('开始处理获取收藏夹请求')
+  try {
+    // 验证用户令牌
+    const token = request.headers.get('Authorization')?.split(' ')[1]
+    if (!token) {
+      console.log('未提供授权令牌')
+      return NextResponse.json({ error: '未授权' }, { status: 401 })
+    }
+
+    let decoded;
+    try {
+      decoded = await verifyToken(token)
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'TokenExpiredError') {
+        console.log('令牌已过期')
+        return NextResponse.json({ error: '令牌已过期' }, { status: 401 })
+      }
+      console.error('令牌验证错误:', error)
+      return NextResponse.json({ error: '无效的令牌' }, { status: 401 })
+    }
+
+    console.log(`用户ID: ${decoded.userId}`)
+
+    // 查询用户的收藏夹
+    const collections = await prisma.favItem.findMany({
+      where: {
+        userId: decoded.userId,
+        isDeleted: false,
+        type: 'collection'
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    console.log('收藏夹获取成功')
+    return NextResponse.json({ collections })
+  } catch (error) {
+    console.error('获取收藏夹错误:', error)
+    return NextResponse.json({ error: '获取收藏夹失败' }, { status: 500 })
+  }
+}

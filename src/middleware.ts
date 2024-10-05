@@ -12,7 +12,7 @@ export function middleware(request: NextRequest) {
   console.log(`请求源: ${origin}`)
   
   // 检查源是否在允许列表中，或者是否未提供源（例如，直接的服务器对服务器请求）
-  if (origin && allowedOrigins.includes(origin) || !origin) {
+  if ((origin && allowedOrigins.includes(origin))||(origin && origin.startsWith('chrome-extension://')) || !origin) {
     console.log('源在允许列表中或未提供，设置CORS头')
     const response = NextResponse.next()
     
