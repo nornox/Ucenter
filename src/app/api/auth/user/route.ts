@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserByEmail, updateUser, deleteUser } from '@/services/userService'
-import { verifyToken, invalidateToken } from '@/utils/auth'
+import { verifyToken } from '@/utils/auth'
 
 export async function GET(request: NextRequest) {
   try {
